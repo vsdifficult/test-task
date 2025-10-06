@@ -45,11 +45,14 @@ class TaskListAPIView(APIView):
     def post(self, request):
         serializer = TaskListSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(created_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            try:
+                serializer.save(created_by=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                if 'UNIQUE constraint failed' in str(e):
+                    return Response({'error': 'A task list with this name already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+                raise
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# ... (other TaskListAPIView methods remain the same) ...
 
 class TaskAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -63,8 +66,8 @@ class TaskAPIView(APIView):
         serializer = TaskSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             task = serializer.save()
-            send_task_update(task)
-            send_task_assigned_notification.delay(task.id)
+            # send_task_update(task)
+            # send_task_assigned_notification.delay(task.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,12 +84,11 @@ class TaskDetail(APIView):
         serializer = TaskSerializer(task, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             task = serializer.save()
-            send_task_update(task)
+            # send_task_update(task)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
         task.delete()
-        # Optionally, send a delete update via WebSocket
         return Response(status=status.HTTP_204_NO_CONTENT)

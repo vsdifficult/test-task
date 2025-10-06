@@ -150,4 +150,4 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Telegram Bot Token
-TELEGRAM_BOT_TOKEN = "7553027065:AAHJRF1-BPNuC0GMeUuzFSsKi4VdORJhw1Q"  # IMPORTANT: Replace with your actual bot token
+TELEGRAM_BOT_TOKEN = ""  # IMPORTANT: Replace with your actual bot token

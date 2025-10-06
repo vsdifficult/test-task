@@ -7,6 +7,9 @@ class TaskList(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_lists')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ['name', 'created_by']
+
     def __str__(self):
         return self.name
 
@@ -18,7 +21,10 @@ class Task(models.Model):
     due_date = models.DateTimeField(blank=True, null=True)
     completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['title', 'task_list']
 
     def __str__(self):
         return self.title

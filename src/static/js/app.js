@@ -1,3 +1,4 @@
+// @ts-nocheck
 // JavaScript for dynamic UI and WebSocket integration
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('create-tasklist-form');
     const taskListsUl = document.getElementById('task-lists');
 
+    let isSubmittingTaskList = false;
     if (createBtn && modal && cancelBtn && form && taskListsUl) {
         createBtn.addEventListener('click', () => {
             modal.style.display = 'block';
@@ -19,11 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isSubmittingTaskList) return;
+            isSubmittingTaskList = true;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
             const name = form.name.value.trim();
             const description = form.description.value.trim();
 
             if (!name) {
                 alert('Name is required');
+                submitBtn.disabled = false;
                 return;
             }
 
@@ -49,12 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     taskListsUl.appendChild(li);
                     modal.style.display = 'none';
                     form.reset();
+                    isSubmittingTaskList = false;
+                    submitBtn.disabled = false;
                 } else {
                     const errorData = await response.json();
                     alert('Error: ' + JSON.stringify(errorData));
+                    isSubmittingTaskList = false;
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
+                isSubmittingTaskList = false;
+                submitBtn.disabled = false;
             }
         });
     }
@@ -62,8 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Task creation code
     const createTaskForm = document.getElementById('create-task-form');
     if (createTaskForm) {
+        let isSubmittingTask = false;
         createTaskForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isSubmittingTask) return;
+            isSubmittingTask = true;
+            const submitBtn = createTaskForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
             const title = createTaskForm.title.value.trim();
             const description = createTaskForm.description.value.trim();
             const assigned_to_username = createTaskForm.assigned_to.value.trim();
@@ -71,12 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!title) {
                 alert('Title is required');
+                isSubmittingTask = false;
+                submitBtn.disabled = false;
                 return;
             }
 
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
             try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 // Fetch user ID by username (assuming an API endpoint /api/users/?username=)
                 let assigned_to_id = null;
                 if (assigned_to_username) {
@@ -89,12 +108,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             assigned_to_id = users[0].id;
                         } else {
                             alert('Assigned user not found');
+                            isSubmittingTask = false;
+                            submitBtn.disabled = false;
                             return;
                         }
                     } else {
                         alert('Failed to fetch user info');
+                        isSubmittingTask = false;
+                        submitBtn.disabled = false;
                         return;
                     }
+                }
+
+                const taskData = {
+                    title,
+                    description,
+                    due_date,
+                    task_list: taskListId
+                };
+                if (assigned_to_id !== null) {
+                    taskData.assigned_to_id = assigned_to_id;
                 }
 
                 const response = await fetch('/api/tasks/', {
@@ -103,13 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': csrfToken,
                     },
-                    body: JSON.stringify({
-                        title,
-                        description,
-                        assigned_to: assigned_to_id,
-                        due_date,
-                        task_list: taskListId
-                    }),
+                    body: JSON.stringify(taskData),
                 });
 
                 if (response.ok) {
@@ -120,12 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     li.innerHTML = `<strong>${data.title}</strong> - Assigned to: ${assigned_to_username || 'Unassigned'} - Due: ${data.due_date || 'N/A'} - Completed: <span class="completed-status">${data.completed ? 'Yes' : 'No'}</span> <button class="complete-btn" data-task-id="${data.id}">Mark Complete</button>`;
                     tasksList.appendChild(li);
                     createTaskForm.reset();
+                    isSubmittingTask = false;
+                    submitBtn.disabled = false;
                 } else {
                     const errorData = await response.json();
                     alert('Error: ' + JSON.stringify(errorData));
+                    isSubmittingTask = false;
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
+                isSubmittingTask = false;
+                submitBtn.disabled = false;
             }
         });
     }
