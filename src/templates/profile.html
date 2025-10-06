@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<h2>My Profile</h2>
+
+<p><strong>Username:</strong> {{ user.username }}</p>
+<p><strong>Telegram Account Linked:</strong> 
+    {% if user.telegram_id %}
+        Yes (ID: {{ user.telegram_id }})
+    {% else %}
+        No
+    {% endif %}
+</p>
+
+<hr>
+
+<h3>Link Telegram Account</h3>
+<p>To receive notifications via Telegram, get the linking code from the bot using the <code>/start</code> command and paste it here.</p>
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Link Account</button>
+</form>
+
+{% endblock %}
