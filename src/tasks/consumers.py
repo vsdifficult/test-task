@@ -21,11 +21,9 @@ class TaskConsumer(AsyncWebsocketConsumer):
             )
 
     async def receive(self, text_data):
-        # Handle incoming messages if needed
         pass
 
     async def task_update(self, event):
-        # Send task update to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'task_update',
             'task': event['task']

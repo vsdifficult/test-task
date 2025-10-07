@@ -24,12 +24,9 @@ def send_telegram_message(telegram_id, message):
     """Synchronous wrapper to run the async message sending function."""
     if telegram_id:
         try:
-            # Check if an event loop is running.
             asyncio.get_running_loop()
-            # If so, schedule the coroutine to run in the existing loop.
             asyncio.ensure_future(send_message_async(telegram_id, message))
-        except RuntimeError:  # No running loop
-            # If not, run it in a new loop.
+        except RuntimeError:  
             asyncio.run(send_message_async(telegram_id, message))
 
 @shared_task

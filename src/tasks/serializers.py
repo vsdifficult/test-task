@@ -21,7 +21,7 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=CustomUser.objects.all(), 
         source='assigned_to', 
         write_only=True, 
-        required=False  # Make the field optional
+        required=False  
     )
 
     class Meta:
@@ -29,13 +29,11 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'task_list', 'assigned_to', 'assigned_to_id', 'due_date', 'completed', 'created_at', 'updated_at']
 
     def create(self, validated_data):
-        # If assigned_to is not provided, default to the current user.
         if 'assigned_to' not in validated_data:
             request = self.context.get("request")
             if request and hasattr(request, "user"):
                 validated_data['assigned_to'] = request.user
         
-        # Ensure assigned_to is set before creating the task
         if 'assigned_to' not in validated_data:
             raise serializers.ValidationError("Could not determine the user to assign the task to.")
 

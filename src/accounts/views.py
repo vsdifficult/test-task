@@ -60,7 +60,6 @@ class UserAPIView(APIView):
         if username:
             users = CustomUser.objects.filter(username__icontains=username)
 
-        # If the specific query returned no results, return all users to help with debugging.
         if not users.exists():
             users = CustomUser.objects.all()
 
